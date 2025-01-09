@@ -1,0 +1,20 @@
+#ignore venv files
+venv/
+#ignore .pyc files
+*.pyc
+#ignore .DS_Store files
+.DS_Store
+#ignore .env files
+.env
+backend/.env
+config.env
+#ignore .vscode files
+.vscode/
+#ignore .pytest_cache files
+.pytest_cache/
+#ignore __pycache__ files
+__pycache__/
+#ignore .mypy_cache files
+.mypy_cache/
+#ignore .pytest_cache files
+.pytest_cache/
