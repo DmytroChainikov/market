@@ -19,6 +19,11 @@ class UserUpdate(UserBase):
     profile_image: Optional[str] = None
     phone: Optional[str] = None
 
+class UserHistory(BaseModel):
+    goods: List[int]
+    
+    class Config:
+        from_attributes = True
 
 class User(UserBase):
     id: int

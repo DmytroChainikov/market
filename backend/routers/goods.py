@@ -21,26 +21,31 @@ def create_goods(
             detail=f"Не вдалося створити товар: {str(e)}",
         )
 
-@router.get("/goods/get_goods_by_id", response_model=schemas.Goods, tags=["goods"])
-def read_goods_by_id(
+@router.get("/goods/get_goods_by_id_unauthorized", response_model=schemas.Goods, tags=["goods"])
+def read_goods_by_id_unauthorized(
     goods_id: int,
     db: Session = Depends(get_db),
 ):
     goods = _gd.get_goods_by_id(db=db, goods_id=goods_id)
-    try:
-        user = schemas.User = Depends(_us.get_current_user)
-    except:
-        user = None
-    print(user)
-    if user:
-        print(user)
-        # _us.update_user_view_history(db=db, user_id=user.id, goods_id=goods_id)
     if goods is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Товар не знайдено"
         )
     return goods
-
+@router.get("/goods/get_goods_by_id", response_model=schemas.Goods, tags=["goods"])
+def read_goods_by_id(
+    goods_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(_us.get_current_user),
+):
+    goods = _gd.get_goods_by_id(db=db, goods_id=goods_id)
+    if current_user:
+        _us.update_user_view_history(db=db, user_id=current_user.id, goods_id=goods_id)
+    if goods is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Товар не знайдено"
+        )
+    return goods
 @router.get("/goods/get_goods_by_seller", response_model=list[schemas.Goods], tags=["goods"])
 def read_goods_by_seller(
     db: Session = Depends(get_db),

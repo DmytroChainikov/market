@@ -180,3 +180,19 @@ def update_user_view_history(db: Session, user_id: int, goods_id: int):
     db.commit()
     db.refresh(user)
     return user
+
+
+def get_recomendations_data(db: Session, user_id: int,):
+    user = get_user(db, user_id)
+    if not user:
+        return None
+    if user.view_history:
+        history = user.view_history.split(",")
+        goods = []
+        for i in history:
+            goods.append(db.query(models.Goods).filter(models.Goods.id == i).first())
+        return goods
+    else:
+        return None
+
+
