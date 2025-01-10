@@ -109,6 +109,8 @@ def delete_user(db: Session, user_id: int):
     db_user = get_user(db, user_id)
     if not db_user:
         return None
+    db.query(models.Cart).filter(models.Cart.user_id == user_id).delete()
+    db.query(models.Goods).filter(models.Goods.seller_id == user_id).delete()
     db.delete(db_user)
     db.commit()
     return db_user

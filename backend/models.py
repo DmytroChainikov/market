@@ -19,10 +19,10 @@ class User(Base):
     is_verified = Column(Integer, default=0)
     view_history = Column(String)
     
-    goods = relationship("Goods", back_populates="seller")
+    goods = relationship("Goods", back_populates="seller", cascade="all, delete")
     orders = relationship("Order", back_populates="user")
     reviews = relationship("Review", back_populates="user")
-    cart = relationship("Cart", back_populates="user")
+    cart = relationship("Cart", back_populates="user", cascade="all, delete")
 
 class Cart(Base):
     __tablename__ = "cart"

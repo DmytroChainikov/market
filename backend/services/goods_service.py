@@ -20,9 +20,7 @@ def create_goods(db: Session, goods: schemas.GoodsCreate, seller_id: int):
     return db_goods
 
 def update_goods(db: Session, goods_id: int, goods: schemas.GoodsUpdate, seller_id: int):
-    # filter by goods_id and seller_id
     db_goods = db.query(models.Goods).filter(models.Goods.id == goods_id, models.Goods.seller_id == seller_id).first()
-    # db_goods = db.query(models.Goods).filter(models.Goods.id == goods_id).first()
     if not db_goods:
         return None
     if goods.name:
@@ -47,8 +45,38 @@ def update_goods(db: Session, goods_id: int, goods: schemas.GoodsUpdate, seller_
     db.refresh(db_goods)
     return db_goods
 
+def get_all_goods(db: Session, limit: int, offset: int, category: str, min_price: float, max_price: float):
+    if category:
+        return db.query(models.Goods).filter(models.Goods.category == category).limit(limit).offset(offset).all()
+    if min_price and max_price:
+        return db.query(models.Goods).filter(models.Goods.price >= min_price, models.Goods.price <= max_price).limit(limit).offset(offset).all()
+    return db.query(models.Goods).limit(limit).offset(offset).all()
+
+def search_goods(db: Session, query: str):
+    return db.query(models.Goods).filter(models.Goods.name.ilike(f"%{query}%")).all()
+
+def get_discounted_goods(db: Session):
+    return db.query(models.Goods).filter(models.Goods.discount > 0).all()
+
+def compare_goods(db: Session, goods_ids: list[int]):
+    return db.query(models.Goods).filter(models.Goods.id.in_(goods_ids)).all()
+
+def get_goods_by_category(db: Session, category: str):
+    return db.query(models.Goods).filter(models.Goods.category == category).all()
+
 def get_goods_by_id(db: Session, goods_id: int):
     return db.query(models.Goods).filter(models.Goods.id == goods_id).first()
 
-def get_goods_by_seller(db: Session, seller_id: int):
+def get_goods_by_seller_id(db: Session, seller_id: int):
     return db.query(models.Goods).filter(models.Goods.seller_id == seller_id).all()
+
+def get_my_goods(db: Session, seller_id: int):
+    return db.query(models.Goods).filter(models.Goods.seller_id == seller_id).all()
+
+def delete_goods(db: Session, goods_id: int, seller_id: int):
+    db_goods = db.query(models.Goods).filter(models.Goods.id == goods_id, models.Goods.seller_id == seller_id).first()
+    if not db_goods:
+        return None
+    db.delete(db_goods)
+    db.commit()
+    return db_goods
