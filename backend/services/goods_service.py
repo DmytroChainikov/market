@@ -11,6 +11,7 @@ def create_goods(db: Session, goods: schemas.GoodsCreate, seller_id: int):
         specification = goods.specification,
         goods_type = goods.goods_type,
         category = goods.category,
+        quantity = goods.quantity,
         discount = goods.discount,
         seller_id = seller_id
     )
@@ -63,6 +64,9 @@ def compare_goods(db: Session, goods_ids: list[int]):
 
 def get_goods_by_category(db: Session, category: str):
     return db.query(models.Goods).filter(models.Goods.category == category).all()
+
+def get_goods_by_category_and_type(db: Session, category: str, goods_type: str):
+    return db.query(models.Goods).filter(models.Goods.category == category, models.Goods.goods_type == goods_type).all()
 
 def get_goods_by_id(db: Session, goods_id: int):
     return db.query(models.Goods).filter(models.Goods.id == goods_id).first()

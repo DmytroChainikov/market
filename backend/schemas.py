@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class UserBase(BaseModel):
     email: str
@@ -25,6 +25,12 @@ class UserHistory(BaseModel):
     class Config:
         from_attributes = True
 
+class UserFavorite(BaseModel):
+    goods: List[int]
+    
+    class Config:
+        from_attributes = True
+
 class User(UserBase):
     id: int
     language: Optional[str] = "uk"
@@ -32,6 +38,7 @@ class User(UserBase):
     verification_code: Optional[int] = None
     is_verified: int
     created_at: datetime = datetime.now()
+    favorite_goods: Optional[str] = ""
     view_history: Optional[str] = ""
     profile_image: Optional[str] = None
     address: Optional[str] = None
@@ -51,17 +58,13 @@ class CartBase(BaseModel):
     goods_id: int
     quantity: int
     
-class CartCreate(CartBase):
-    pass
+class CartCreate(BaseModel):
+    goods_id: int
+    quantity: int
 
 class CartUpdate(BaseModel):
     quantity: Optional[int] = None 
 
-class Cart(CartBase):
-    id: int
-
-    class Config:
-        from_attributes = True
 
 class GoodsBase(BaseModel):
     name: str
@@ -70,6 +73,7 @@ class GoodsBase(BaseModel):
     specification: str
     goods_type: str
     category: str
+    quantity: int
     discount: float
     price: float
 
@@ -94,29 +98,22 @@ class Goods(GoodsBase):
     class Config:
         from_attributes = True
 
+class PromocodeBase(BaseModel):
+    code: str
+    discount: float
+    available_for: dict
+    using_left: int
+    expiration_date: datetime
+    avaible: bool
+
+class PromocodeCreate(BaseModel):
+    discount: float
+    available_for: dict
+    using_left: int
+    expiration_date: datetime
+
 # Order Schemas
-class OrderBase(BaseModel):
-    user_id: int
-    status: Optional[str] = "В обробці"
-
-class OrderCreate(OrderBase):
-    pass
-
-class OrderUpdate(BaseModel):
-    status: Optional[str] = None
-    tracking_number: Optional[str] = None
-    confirmed_at: Optional[datetime] = None
-
-class Order(OrderBase):
-    id: int
-    order_date: datetime
-
-    class Config:
-        from_attributes = True
-
-# OrderItem Schemas
 class OrderItemBase(BaseModel):
-    order_id: int
     goods_id: int
     quantity: int
 
@@ -124,13 +121,30 @@ class OrderItemCreate(OrderItemBase):
     pass
 
 class OrderItem(OrderItemBase):
-    pass
+    order_id: int
 
     class Config:
         from_attributes = True
 
-class OrderItemUpdate(OrderItemBase):
-    pass
+class OrderBase(BaseModel):
+    order_date: datetime = None
+    tracking_number: Optional[str] = ""
+    status: Optional[str] = "в обробці"
+    confirmed_at: Optional[datetime] = ""
+    sum_to_pay: Optional[float] = 0.0
+    promocode: Optional[str] = ""
+
+class OrderCreate(BaseModel):
+    promocode: Optional[str] = ""
+    items: List[OrderItemCreate]
+
+class OrderResponse(OrderBase):
+    id: int
+    user_id: int
+    items: List[OrderItem] = []
+
+    class Config:
+        from_attributes = True
 # Review Schemas
 class ReviewBase(BaseModel):
     goods_id: int
@@ -138,9 +152,6 @@ class ReviewBase(BaseModel):
     rating: int
     images_path: str
     comment: str
-
-class ReviewCreate(ReviewBase):
-    pass
 
 class ReviewUpdate(BaseModel):
     rating: Optional[int] = None

@@ -50,6 +50,7 @@ def create_test_user(db: Session, user: schemas.User):
         hashed_password=hash_password(user.hashed_password),
         language="uk",
         verification_code='123456',
+        favorite_goods = "",
         view_history = "",
         profile_image = "default.jpg"
     )
@@ -73,6 +74,7 @@ async def create_user(db: Session, user: schemas.UserCreate):
         hashed_password=hash_password(user.hashed_password),
         language="uk",
         verification_code=verification_code,
+        favorite_goods = "",
         view_history = "",
         profile_image = "default.jpg"
     )
@@ -198,3 +200,28 @@ def get_recomendations_data(db: Session, user_id: int,):
         return None
 
 
+def add_to_favorite(db: Session, goods_id: int, user_id: int):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        return None
+    if db_user.favorite_goods:
+        if str(goods_id) not in db_user.favorite_goods.split(","):
+            db_user.favorite_goods += f",{goods_id}"
+    else:
+        db_user.favorite_goods = str(goods_id)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def remove_from_favorite(db: Session, goods_id: int, user_id: int):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        return None
+    if db_user.favorite_goods:
+        if str(goods_id) in db_user.favorite_goods.split(","):
+            favorite = db_user.favorite_goods.split(",")
+            favorite.remove(str(goods_id))
+            db_user.favorite_goods = ",".join(favorite)
+    db.commit()
+    db.refresh(db_user)
+    return db_user

@@ -65,6 +65,14 @@ def get_goods_by_category(
 ):
     return _gd.get_goods_by_category(db=db, category=category)
 
+@router.get("/goods/{category}/{goods_type}", response_model=list[schemas.Goods], tags=["goods"])
+def get_goods_by_category_and_type(
+    category: str,
+    goods_type: str,
+    db: Session = Depends(get_db),
+):
+    return _gd.get_goods_by_category_and_type(db=db, category=category, goods_type=goods_type)
+
 @router.get("/goods/get_goods_by_id_unauthorized", response_model=schemas.Goods, tags=["goods"])
 def read_goods_by_id_unauthorized(
     goods_id: int,
@@ -145,3 +153,21 @@ def delete_goods(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не вдалося видалити товар: {str(e)}",
         )
+        
+@router.put("/goods/favorite", response_model=schemas.User, tags=["goods"])
+def add_to_favorite(
+    goods_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(_us.get_current_user),
+):
+    user = _us.add_to_favorite(db=db, goods_id=goods_id, user_id=current_user.id)
+    return user
+
+@router.delete("/goods/favorite", response_model=schemas.User, tags=["goods"])
+def remove_from_favorite(
+    goods_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(_us.get_current_user),
+):
+    user = _us.remove_from_favorite(db=db, goods_id=goods_id, user_id=current_user.id)
+    return user

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -17,6 +17,7 @@ class User(Base):
     verification_code = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     is_verified = Column(Integer, default=0)
+    favorite_goods = Column(String)
     view_history = Column(String)
     
     goods = relationship("Goods", back_populates="seller", cascade="all, delete")
@@ -51,8 +52,18 @@ class Goods(Base):
     seller_id = Column(Integer, ForeignKey("users.id"))
 
     seller = relationship("User", back_populates="goods")
-    reviews = relationship("Review", back_populates="goods")
+    reviews = relationship("Review", back_populates="goods", cascade="all, delete")
 
+class Promocodes(Base):
+    __tablename__ = "promocodes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String)
+    discount = Column(Float)
+    available_for = Column(JSON)
+    using_left = Column(Integer)
+    expiration_date = Column(DateTime)
+    avaible = Column(Integer)
 class Order(Base):
     __tablename__ = "orders"
 
@@ -62,6 +73,8 @@ class Order(Base):
     tracking_number = Column(String)
     status = Column(String)
     confirmed_at = Column(DateTime, nullable=True)
+    sum_to_pay = Column(Float)
+    promocode = Column(String, nullable=True)
 
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
