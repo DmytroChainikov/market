@@ -1,0 +1,55 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+.header_1200 {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  background-color: white;
+}
+input{
+  text-align: center;
+}
+input:focus {
+  outline: none;
+}
+.a_hover:hover {
+  color: #6A63CA;
+  box-shadow: 0px 0px 5px 2px;
+}
+
+
+/* Позиціонування пошукових результатів */
+.search-results {
+  position: absolute; /* Абсолютне позиціонування */
+  top: 115%; /* Розташування нижче поля пошуку */
+  width: 100%; /* Ширина відповідає ширині контейнера */
+  background-color: white; /* Білий фон */
+  z-index: 10; /* Встановлення пріоритету для коректного накладання */
+  max-height: 300px; /* Максимальна висота */
+  overflow-y: auto; /* Прокрутка для великої кількості елементів */
+  overflow-x: hidden; /* Приховання горизонтальної прокрутки */
+}
+
+/* Результат пошуку */
+.search-result-item {
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: #f0f0f0; /* Виділення при наведенні */
+}
+.link_hover:hover {
+  background-color: white;
+  box-shadow: 0px 0px 5px 2px #6A63CA;
+}

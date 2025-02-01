@@ -81,3 +81,10 @@ def delete_cart(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не вдалося видалити товар з кошика: {str(e)}",
         )
+
+@router.get("/cart/length", response_model=int, tags=["cart"])
+def get_cart_length(
+    db: Session = Depends(get_db),
+    user: schemas.User = Depends(_us.get_current_user),
+):
+    return _cs.get_cart_length(db=db, user_id=user.id)

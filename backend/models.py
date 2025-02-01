@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, JSON, ARRAY
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -41,9 +41,9 @@ class Goods(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    images_path = Column(String)
+    images_path = Column(ARRAY(String))
     description = Column(String)
-    specification = Column(String)
+    specification = Column(JSON)
     goods_type = Column(String) 
     category = Column(String) 
     price = Column(Float)

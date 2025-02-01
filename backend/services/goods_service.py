@@ -84,3 +84,31 @@ def delete_goods(db: Session, goods_id: int, seller_id: int):
     db.delete(db_goods)
     db.commit()
     return db_goods
+
+
+def upload_json_to_parse(db: Session, seller_id: int, contents: dict):
+    goods_list = []  # Список для збереження доданих товарів
+    try:
+        i = 0
+        for item in contents.values():  # Перебираємо значення вмісту
+            db_goods = models.Goods(
+                name=item['name'],
+                description=item['description'],
+                price=item['price'],
+                images_path=item['images_path'],
+                specification=item['specification'],
+                goods_type=item['goods_type'],
+                category=item['category'],
+                quantity=item.get('quantity', 0),  # Якщо поле відсутнє, використовуємо 0
+                discount=item['discount'],
+                seller_id=seller_id
+            )
+            db.add(db_goods)
+            db.commit()
+            db.refresh(db_goods)
+            goods_list.append(db_goods)  # Додаємо товар до списку
+            i += 1
+        print(f"Додано {i} товарів")  # Виводимо кількість доданих товар
+        return goods_list  # Повертаємо список всіх доданих товарів
+    except Exception as e:
+        return None

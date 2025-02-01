@@ -68,9 +68,9 @@ class CartUpdate(BaseModel):
 
 class GoodsBase(BaseModel):
     name: str
-    images_path: str
+    images_path: List[str]
     description: str
-    specification: str
+    specification: dict
     goods_type: str
     category: str
     quantity: int
@@ -82,14 +82,14 @@ class GoodsCreate(GoodsBase):
 
 class GoodsUpdate(BaseModel):
     name: Optional[str] = None
-    images_path: Optional[str] = None
+    images_path: Optional[List[str]] = None
     description: Optional[str] = None
-    specification: Optional[str] = None
+    specification: Optional[dict] = None
     goods_type: Optional[str] = None
     category: Optional[str] = None
     price: Optional[float] = None
     discount: Optional[float] = None
-    quantity: Optional[int] = None
+    quantity: Optional[int] = 0
 
 class Goods(GoodsBase):
     id: int

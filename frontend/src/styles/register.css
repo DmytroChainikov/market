@@ -1,0 +1,17 @@
+.phone-select__control {
+  border-top-left-radius: 0.5rem !important;
+  border-bottom-left-radius: 0.5rem !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-right: 0 !important;
+  border: 1px solid rgb(209 213 219 / var(--tw-border-opacity, 1)) !important;
+}
+.phone-select__value-container {
+  padding: 0.75rem !important;
+}
+.phone-select__indicator {
+  padding: 0 0.25rem !important;
+}
+/* .phone-select__indicator-separator  {
+    display: none;
+  } */

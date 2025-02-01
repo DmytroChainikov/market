@@ -40,3 +40,10 @@ def delete_cart(db: Session, cart_id: int, user_id: int):
     db.delete(db_cart)
     db.commit()
     return db_cart
+
+def get_cart_length(db: Session, user_id: int):
+    cart_data = db.query(models.Cart).filter(models.Cart.user_id == user_id)
+    items = 0
+    for item in cart_data:
+        items += item.quantity
+    return items

@@ -29,6 +29,17 @@ def login(
     )
     return dict(access_token=access_token, token_type="bearer")
 
+@router.post("/refresh-token", tags=["!token"])
+def refresh_token(
+    current_user: schemas.User = Depends(_us.get_current_user),
+    db: Session = Depends(get_db)
+):
+    access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")))
+    access_token = _us.create_access_token(
+        data={"sub": current_user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.post("/user/test", response_model=schemas.User, tags=["!token"])
 def create_test_user(db: Session = Depends(get_db)):
@@ -41,12 +52,12 @@ def create_test_user(db: Session = Depends(get_db)):
     return new_user
 
 
-@router.post("/user/create", response_model=schemas.User, tags=["user"])
+@router.post("/user/create", response_model=schemas.UserBase, tags=["user"])
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     email_valid = _us.is_valid_email(user.email)
     if email_valid:
         raise HTTPException(status_code=400, detail="Неправильний email")
-    existing_user = _us.get_user_by_email_or_phone(db, email=user.email)
+    existing_user = _us.get_user_by_email_or_phone(db, username=user.email)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -1,10 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.orm import Session
 import services.goods_service as _gd, schemas
 import services.user_service as _us
 from database import get_db
+from io import StringIO
+import json
 
 router = APIRouter()
+
 
 @router.post("/goods/create", response_model=schemas.Goods, tags=["goods"])
 def create_goods(
@@ -21,6 +24,7 @@ def create_goods(
             detail=f"Не вдалося створити товар: {str(e)}",
         )
 
+
 @router.get("/goods", response_model=list[schemas.Goods], tags=["goods"])
 def read_all_goods(
     db: Session = Depends(get_db),
@@ -31,25 +35,37 @@ def read_all_goods(
     max_price: float = None,
 ):
     goods = _gd.get_all_goods(
-        db=db, limit=limit, offset=offset, category=category, min_price=min_price, max_price=max_price
+        db=db,
+        limit=limit,
+        offset=offset,
+        category=category,
+        min_price=min_price,
+        max_price=max_price,
     )
     return goods
+
 
 @router.get("/goods/search", response_model=list[schemas.Goods], tags=["goods"])
 def search_goods(
     query: str,
     db: Session = Depends(get_db),
 ):
+    if query is None or query == "":
+        raise HTTPException(
+            status_code=400, detail="Пошуковий запит не може бути порожнім"
+        )
     goods = _gd.search_goods(db=db, query=query)
     if not goods:
         raise HTTPException(status_code=404, detail="Товари не знайдено")
     return goods
+
 
 @router.get("/goods/discounted", response_model=list[schemas.Goods], tags=["goods"])
 def get_discounted_goods(
     db: Session = Depends(get_db),
 ):
     return _gd.get_discounted_goods(db=db)
+
 
 @router.post("/goods/compare", response_model=list[schemas.Goods], tags=["goods"])
 def compare_goods(
@@ -58,22 +74,33 @@ def compare_goods(
 ):
     return _gd.compare_goods(db=db, goods_ids=goods_ids)
 
-@router.get("/goods/category/{category}", response_model=list[schemas.Goods], tags=["goods"])
+
+@router.get(
+    "/goods/category/{category}", response_model=list[schemas.Goods], tags=["goods"]
+)
 def get_goods_by_category(
     category: str,
     db: Session = Depends(get_db),
 ):
     return _gd.get_goods_by_category(db=db, category=category)
 
-@router.get("/goods/{category}/{goods_type}", response_model=list[schemas.Goods], tags=["goods"])
+
+@router.get(
+    "/goods/{category}/{goods_type}", response_model=list[schemas.Goods], tags=["goods"]
+)
 def get_goods_by_category_and_type(
     category: str,
     goods_type: str,
     db: Session = Depends(get_db),
 ):
-    return _gd.get_goods_by_category_and_type(db=db, category=category, goods_type=goods_type)
+    return _gd.get_goods_by_category_and_type(
+        db=db, category=category, goods_type=goods_type
+    )
 
-@router.get("/goods/get_goods_by_id_unauthorized", response_model=schemas.Goods, tags=["goods"])
+
+@router.get(
+    "/goods/get_goods_by_id_unauthorized", response_model=schemas.Goods, tags=["goods"]
+)
 def read_goods_by_id_unauthorized(
     goods_id: int,
     db: Session = Depends(get_db),
@@ -84,6 +111,8 @@ def read_goods_by_id_unauthorized(
             status_code=status.HTTP_404_NOT_FOUND, detail="Товар не знайдено"
         )
     return goods
+
+
 @router.get("/goods/get_goods_by_id", response_model=schemas.Goods, tags=["goods"])
 def read_goods_by_id(
     goods_id: int,
@@ -99,17 +128,18 @@ def read_goods_by_id(
         )
     return goods
 
-@router.get("/goods/get_goods_by_seller_id", response_model=list[schemas.Goods], tags=["goods"])
-def read_goods_by_seller_id(
-    seller_id: int,
-    db: Session = Depends(get_db)
-):
+
+@router.get(
+    "/goods/get_goods_by_seller_id", response_model=list[schemas.Goods], tags=["goods"]
+)
+def read_goods_by_seller_id(seller_id: int, db: Session = Depends(get_db)):
     goods = _gd.get_goods_by_seller_id(db=db, seller_id=seller_id)
     if goods is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Товари не знайдено"
         )
     return goods
+
 
 @router.get("/goods/get_my_goods", response_model=list[schemas.Goods], tags=["goods"])
 def read_get_my_goods(
@@ -123,6 +153,7 @@ def read_get_my_goods(
         )
     return goods
 
+
 @router.put("/goods/update", response_model=schemas.Goods, tags=["goods"])
 def update_goods(
     goods_id: int,
@@ -131,14 +162,17 @@ def update_goods(
     seller: schemas.User = Depends(_us.get_current_user),
 ):
     try:
-        updated_goods = _gd.update_goods(db=db, goods_id=goods_id, goods=goods, seller_id=seller.id)
+        updated_goods = _gd.update_goods(
+            db=db, goods_id=goods_id, goods=goods, seller_id=seller.id
+        )
         return updated_goods
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не вдалося оновити товар: {str(e)}",
         )
-    
+
+
 @router.delete("/goods/delete", response_model=schemas.Goods, tags=["goods"])
 def delete_goods(
     goods_id: int,
@@ -153,7 +187,8 @@ def delete_goods(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не вдалося видалити товар: {str(e)}",
         )
-        
+
+
 @router.put("/goods/favorite", response_model=schemas.User, tags=["goods"])
 def add_to_favorite(
     goods_id: int,
@@ -163,6 +198,7 @@ def add_to_favorite(
     user = _us.add_to_favorite(db=db, goods_id=goods_id, user_id=current_user.id)
     return user
 
+
 @router.delete("/goods/favorite", response_model=schemas.User, tags=["goods"])
 def remove_from_favorite(
     goods_id: int,
@@ -171,3 +207,25 @@ def remove_from_favorite(
 ):
     user = _us.remove_from_favorite(db=db, goods_id=goods_id, user_id=current_user.id)
     return user
+
+
+@router.post(
+    "/goods/upload_json_to_parse", response_model=str, tags=["goods"]
+)
+def upload_json_to_parse(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    seller: schemas.User = Depends(_us.get_current_user),
+):
+    try:
+        contents = file.file.read().decode("utf-8")
+        goods_data = json.loads(contents)  # Перетворюємо рядок у Python-об'єкт
+        goods = _gd.upload_json_to_parse(
+            db=db, contents=goods_data, seller_id=seller.id
+        )
+        return 'done'
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Не вдалося завантажити файл: {str(e)}",
+        )

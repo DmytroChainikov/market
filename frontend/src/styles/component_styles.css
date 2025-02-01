@@ -1,0 +1,10 @@
+.category_button {
+    box-shadow: 0px 2px 10px 2px #CBD0F9;
+}
+.inner_shadow {
+    box-shadow: inset 16px 18px 30px 5px #F4F4F4;;
+}
+.side_container {
+    background-color: white;
+    height: 25px;
+}

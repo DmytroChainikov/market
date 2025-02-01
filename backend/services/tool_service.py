@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 import models, schemas
 from datetime import datetime
 import services.goods_service as _gd
+import services.user_service as _us
 
 # avaible_for = {'all': 'all', 'categorys': ['electronics','home'], 'goods_type': ['laptop', 'phones'], 'goods': [1,2,3,4,5,6], 'sellers': [1,2,3,4,5,6]}
 
@@ -63,3 +64,10 @@ def check_promocode(db: Session, promocode: str, order_items):
 
 def get_promocode_discount(db: Session, promocode: str):
     return db.query(models.Promocodes).filter(models.Promocodes.code == promocode).first().discount
+
+
+def get_favorite_count(db: Session, user_id: int):
+    user = _us.get_user(db=db, user_id=user_id)
+    if user.favorite_goods == "":
+        return 0
+    return len(user.favorite_goods.split(','))

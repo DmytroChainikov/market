@@ -38,3 +38,11 @@ def check_promocode(
     db: Session = Depends(get_db)
 ):
     return _ts.check_promocode(promocode=promocode, order_items=order_items, db=db)
+
+
+@router.get('/tool/favorite_length', response_model=int, tags=["tool"])
+def get_favorite_count(
+    db: Session = Depends(get_db),
+    user: schemas.User = Depends(_us.get_current_user)
+):
+    return _ts.get_favorite_count(user_id=user.id, db=db)
