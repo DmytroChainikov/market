@@ -1,39 +1,70 @@
 import axios from "axios";
 
+const API_URL = "http://localhost:8000"; // Заміни на свій бекенд
+
 // Створюємо екземпляр Axios
 const instance = axios.create({
-  baseURL: "http://localhost:8000", // Заміни на URL свого бекенду
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
+// Функція для оновлення токена
+const refreshAccessToken = async () => {
+  try {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) throw new Error("Refresh token is missing");
+
+    const response = await axios.post(`${API_URL}/refresh-token`, null, {
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+      },
+    });
+
+    const newAccessToken = response.data.access_token;
+    localStorage.setItem("accessToken", newAccessToken); // Оновлюємо токен
+    return newAccessToken;
+  } catch (error) {
+    console.error("Помилка оновлення токена:", error);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    window.location.href = "/login"; // Перенаправлення на сторінку входу
+    return null;
+  }
+};
+
 // Інтерсептор для запитів
 instance.interceptors.request.use(
   (config) => {
-    // Перевіряємо, чи потрібно пропускати токен
     if (!config.headers.skipAuth) {
-      const token = localStorage.getItem("accessToken"); // Отримуємо токен із LocalStorage
+      const token = localStorage.getItem("accessToken");
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`; // Додаємо токен до заголовків
+        config.headers.Authorization = `Bearer ${token}`;
       }
     }
     return config;
   },
-  (error) => Promise.reject(error) // Обробляємо помилки запиту
+  (error) => Promise.reject(error)
 );
 
 // Інтерсептор для відповідей
 instance.interceptors.response.use(
-  (response) => response, // Успішна відповідь
-  (error) => {
-    // Якщо токен недійсний або закінчився
-    if (error.response?.status === 401) {
-      console.error("Помилка авторизації: токен недійсний або закінчився.");
-      // Додатково: можна додати перенаправлення на сторінку входу
-      // window.location.href = "/login";
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true; // Уникаємо зациклення
+      const newToken = await refreshAccessToken();
+
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return instance(originalRequest); // Повторюємо запит з новим токеном
+      }
     }
-    return Promise.reject(error); // Повертаємо помилку
+
+    return Promise.reject(error);
   }
 );
 

@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 #root {
     position: relative;
     display: flex;
@@ -12,4 +11,14 @@
 .main_page {
     background: url("../assets/backgounds/background.png");
     background-size: cover;
+}
+.lg-download {
+    display: none;
+}
+.lg-toolbar,
+.lg-prev,
+.lg-next,
+.lg-pager-outer,
+.lg-hide-sub-html .lg-sub-html {
+  opacity: 1 !important;
 }

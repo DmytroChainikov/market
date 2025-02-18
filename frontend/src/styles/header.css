@@ -4,8 +4,11 @@
   box-sizing: border-box;
 }
 
-
+header {
+  z-index: 100;
+}
 .header_1200 {
+  z-index: 100;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;

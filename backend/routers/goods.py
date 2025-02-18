@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Query
 from sqlalchemy.orm import Session
 import services.goods_service as _gd, schemas
 import services.user_service as _us
@@ -48,13 +48,15 @@ def read_all_goods(
 @router.get("/goods/search", response_model=list[schemas.Goods], tags=["goods"])
 def search_goods(
     query: str,
+    limit: int = Query(default=10, description="Кількість елементів для повернення"),
+    offset: int = Query(default=0, description="Зміщення для пагінації"),
     db: Session = Depends(get_db),
 ):
     if query is None or query == "":
         raise HTTPException(
             status_code=400, detail="Пошуковий запит не може бути порожнім"
         )
-    goods = _gd.search_goods(db=db, query=query)
+    goods = _gd.search_goods(db=db, query=query, limit=limit, offset=offset)
     if not goods:
         raise HTTPException(status_code=404, detail="Товари не знайдено")
     return goods
@@ -97,6 +99,14 @@ def get_goods_by_category_and_type(
         db=db, category=category, goods_type=goods_type
     )
 
+@router.get(
+    "/goods/get_goods", response_model=list[schemas.Goods], tags=["goods"]
+)
+def get_goods(
+    limit: int = Query(default=10, description="Кількість елементів для повернення"),
+    db: Session = Depends(get_db)
+):
+    return _gd.get_goods(db=db, limit=limit)
 
 @router.get(
     "/goods/get_goods_by_id_unauthorized", response_model=schemas.Goods, tags=["goods"]
@@ -229,3 +239,22 @@ def upload_json_to_parse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не вдалося завантажити файл: {str(e)}",
         )
+
+@router.get('/goods/get_goods_categories', response_model=list[str], tags=["goods"])
+def get_goods_categories(
+    db: Session = Depends(get_db)
+):
+    return _gd.get_goods_categories(db=db)
+
+@router.get('/goods/get_goods_types', response_model=list[str], tags=["goods"])
+def get_goods_types(
+    db: Session = Depends(get_db)
+):
+    return _gd.get_goods_type(db=db)
+
+
+@router.get('/goods/get_higest_price', response_model=schemas.Goods, tags=["goods"])
+def get_higest_price(
+    db: Session = Depends(get_db)
+):
+    return _gd.get_higest_price(db=db)
