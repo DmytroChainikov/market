@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
 import services.user_service as _us, schemas
+import services.recomendation as _recomendation 
 from database import get_db
 from jose import JWTError, jwt
 from datetime import timedelta, datetime
@@ -160,3 +163,15 @@ async def request_password_reset(email: str, db: Session = Depends(get_db)):
 #         raise HTTPException(status_code=404, detail="Користувач не знайдений")
 #     _us.update_password(db, user, data.new_password)
 #     return {"message": "Пароль успішно оновлено"}
+
+@router.get("/user/recommendations", response_model=List[schemas.Goods], tags=["user"])
+async def get_recommendations(
+    db: AsyncSession = Depends(get_db),
+    current_user: schemas.User = Depends(_us.get_current_user),
+):
+    recommendations = await _recomendation.get_recommendations(db=db, user_id=current_user.id)
+    if not recommendations:
+        raise HTTPException(status_code=404, detail="Рекомендації не знайдені")
+    
+    # Повертаємо лише товари, без схожості
+    return [schemas.Goods(**g[0]) for g in recommendations]
